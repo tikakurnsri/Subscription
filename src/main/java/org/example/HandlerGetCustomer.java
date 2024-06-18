@@ -1,180 +1,141 @@
 package org.example;
 
 import com.sun.net.httpserver.HttpExchange;
-
-import java.io.IOException;
-import java.sql.*;
-
 import com.sun.net.httpserver.HttpHandler;
 import org.json.JSONArray;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.*;
+
 public class HandlerGetCustomer implements HttpHandler {
-    private static String tableName;
-    private static String id;
-    private static String path;
-    private static String query;
-    private static String response;
-    private static String[] pathSegments;
-    private static JSONArray data = new JSONArray();
-    private static ResultSet resultSet;
-    private static Connection conn;
-    private static Statement statement;
-    private static Fitur.DatabaseConnection DatabaseConnection;
-    //  private static DatabaseConnection DatabaseConnection;
+    private DatabaseConnection databaseConnection;
 
-    public static String HandlerGetCustomer(HttpExchange exchange) throws SQLException {
-        try {
-            // Menghapus data pada JSONArray untuk menghindari duplikasi data
-            data.clear();
-
-            // Mendapatkan path dari permintaan
-            path = exchange.getRequestURI().getPath();
-
-            // Memisahkan path menjadi endpoint dan id
-            pathSegments = path.split("/");
-
-            // Mendapatkan query string dari permintaan
-            query = exchange.getRequestURI().getQuery();
-
-            // Menghubungkan ke database SQLite
-            conn = DatabaseConnection.getConnection();
-            statement = conn.createStatement();
-
-            // Memastikan segment pertama adalah nama tabel
-            if (pathSegments.length == 2) {
-                tableName = pathSegments[1];
-                if (tableName.equalsIgnoreCase("customers")) {
-                    query = "SELECT * FROM customers";
-                }
-            } else if (pathSegments.length == 3) {
-                tableName = pathSegments[1];
-                id = pathSegments[2];
-                if (tableName.equalsIgnoreCase("customers")) {
-                    query = "SELECT * FROM customers WHERE id = " + id;
-                }
-            } else if (pathSegments.length == 4) {
-                tableName = pathSegments[1];
-                id = pathSegments[2];
-                String subResource = pathSegments[3];
-                if (tableName.equalsIgnoreCase("customers")) {
-                    if (subResource.equalsIgnoreCase("cards")) {
-                        query = "SELECT * FROM cards WHERE customer_id = " + id;
-                    } else if (subResource.equalsIgnoreCase("subscriptions")) {
-                        query = "SELECT * FROM subscriptions WHERE customer_id = " + id;
-                    }
-                }
-            } else if (pathSegments.length == 5) {
-                tableName = pathSegments[1];
-                id = pathSegments[2];
-                String subResource = pathSegments[3];
-                if (tableName.equalsIgnoreCase("customers") && subResource.equalsIgnoreCase("subscriptions")) {
-                    String subStatus = pathSegments[4];
-                    query = "SELECT * FROM subscriptions WHERE customer_id = " + id + " AND status = '" + subStatus + "'";
-                }
-            } else {
-                // Jika tidak ada nama tabel, kembalikan respon error
-                data.put(Fitur.invalidPath(exchange));
-            }
-
-            // Memeriksa apakah tabel valid
-            if (!Fitur.isValidTable(tableName)) {
-                // Jika tabel tidak valid, kembalikan respon error
-                data.put(Fitur.unvaliableTable(tableName));
-            }
-
-            resultSet = statement.executeQuery(query);
-
-            // Mengambil hasil query dan menyimpannya dalam JSONArray
-            while (resultSet.next()) {
-                if (tableName.equals("customers")) {
-                    Customer customers = new Customer();
-                    customers.setId(resultSet.getInt("id"));
-                    customers.setFirstName(resultSet.getString("first_name"));
-                    customers.setLastName(resultSet.getString("last_name"));
-                    customers.setEmail(resultSet.getString("email"));
-                    customers.setPhoneNumber(resultSet.getString("phone_number"));
-                    data.put(customers.toJsonObject());
-
-                    if (pathSegments.length == 3) {
-                        query = "SELECT * FROM addresses WHERE customer_id = " + id;
-                        ResultSet addressResultSet = statement.executeQuery(query);
-                        while (addressResultSet.next()) {
-                            Addresses addresses = new Addresses();
-                            addresses.setId(addressResultSet.getInt("id"));
-                            addresses.setCustomerId(addressResultSet.getInt("customer_id"));
-                            addresses.setTitle(addressResultSet.getString("Title"));
-                            addresses.setLine1(addressResultSet.getString("line1"));
-                            addresses.setLine2(addressResultSet.getString("line2"));
-                            addresses.setCity(addressResultSet.getString("city"));
-                            addresses.setProvince(addressResultSet.getString("province"));
-                            addresses.setPostcode(addressResultSet.getString("postcode"));
-                            data.put(addresses.toJsonObject());
-                        }
-                    }
-                } else if (tableName.equals("cards")) {
-                    Cards cards = new Cards();
-                    cards.setId(resultSet.getInt("id"));
-                    cards.setCustomerId(resultSet.getInt("customer_id"));
-                    cards.setCardNumber(resultSet.getString("card_number"));
-                    cards.setExpiryDate(resultSet.getString("expiry_date"));
-                    cards.setCardType(resultSet.getString("card_type"));
-                    data.put(cards.toJsonObject());
-                } else if (tableName.equals("subscriptions")) {
-                    Subscriptions subscriptions = new Subscriptions();
-                    subscriptions.setId(resultSet.getInt("id"));
-                    subscriptions.setCustomerId(resultSet.getInt("customer_id"));
-                    subscriptions.setStatus(resultSet.getString("status"));
-                    subscriptions.setStartDate(resultSet.getDate("start_date"));
-                    subscriptions.setEndDate(resultSet.getDate("end_date"));
-                    data.put(subscriptions.toJsonObject());
-                } else {
-                    data.put(Fitur.unvaliableTable(tableName));
-                }
-            }
-
-            resultSet.close();
-            statement.close();
-            conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        // Mengatur indentasi pada JSON
-        response = data.toString(2);
-        return response;
+    public HandlerGetCustomer() {
+        this.databaseConnection = databaseConnection;
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-
+        String response;
+        try {
+            response = handleGetCustomer(exchange);
+            sendResponse(exchange, 200, response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            sendResponse(exchange, 500, "Internal server error");
+        }
     }
 
-    private static class Fitur {
-        public static boolean invalidPath(HttpExchange exchange) {
-            return false;
-        }
+    private String handleGetCustomer(HttpExchange exchange) throws SQLException {
+        JSONArray data = new JSONArray();
+        String path = exchange.getRequestURI().getPath();
+        String[] pathSegments = path.split("/");
+        String query;
+        Connection conn = databaseConnection.getConnection();
+        Statement statement = conn.createStatement();
 
-        public static boolean isValidTable(String tableName) {
-            return false;
-        }
-
-        public static boolean unvaliableTable(String tableName) {
-            return false;
-        }
-
-        private class DatabaseConnection {
-            private Connection connection;
-
-            public Connection getConnection() {
-                Connection connection = null;
-                return null;
+        if (pathSegments.length == 2) {
+            if ("customers".equalsIgnoreCase(pathSegments[1])) {
+                query = "SELECT * FROM customers";
+            } else {
+                return invalidPathResponse();
             }
-
-            public void setConnection(Connection connection) {
-                this.connection = connection;
+        } else if (pathSegments.length == 3) {
+            if ("customers".equalsIgnoreCase(pathSegments[1])) {
+                query = "SELECT * FROM customers WHERE id = " + pathSegments[2];
+            } else {
+                return invalidPathResponse();
             }
+        } else if (pathSegments.length == 4) {
+            if ("customers".equalsIgnoreCase(pathSegments[1])) {
+                if ("cards".equalsIgnoreCase(pathSegments[3])) {
+                    query = "SELECT * FROM cards WHERE customer_id = " + pathSegments[2];
+                } else if ("subscriptions".equalsIgnoreCase(pathSegments[3])) {
+                    query = "SELECT * FROM subscriptions WHERE customer_id = " + pathSegments[2];
+                } else {
+                    return invalidPathResponse();
+                }
+            } else {
+                return invalidPathResponse();
+            }
+        } else if (pathSegments.length == 5) {
+            if ("customers".equalsIgnoreCase(pathSegments[1]) && "subscriptions".equalsIgnoreCase(pathSegments[3])) {
+                query = "SELECT * FROM subscriptions WHERE customer_id = " + pathSegments[2] + " AND status = '" + pathSegments[4] + "'";
+            } else {
+                return invalidPathResponse();
+            }
+        } else {
+            return invalidPathResponse();
+        }
+
+        ResultSet resultSet = statement.executeQuery(query);
+        while (resultSet.next()) {
+            if ("customers".equalsIgnoreCase(pathSegments[1])) {
+                Customer customer = new Customer();
+                customer.setId(resultSet.getInt("id"));
+                customer.setFirstName(resultSet.getString("first_name"));
+                customer.setLastName(resultSet.getString("last_name"));
+                customer.setEmail(resultSet.getString("email"));
+                customer.setPhoneNumber(resultSet.getString("phone_number"));
+                data.put(customer.toJsonObject());
+
+                if (pathSegments.length == 3) {
+                    query = "SELECT * FROM addresses WHERE customer_id = " + pathSegments[2];
+                    ResultSet addressResultSet = statement.executeQuery(query);
+                    while (addressResultSet.next()) {
+                        ShippingAddresses addresses = new ShippingAddresses();
+                        addresses.setId(addressResultSet.getInt("id"));
+                        addresses.setCustomerId(addressResultSet.getInt("customer_id"));
+                        addresses.setTitle(addressResultSet.getString("title"));
+                        addresses.setLine1(addressResultSet.getString("line1"));
+                        addresses.setLine2(addressResultSet.getString("line2"));
+                        addresses.setCity(addressResultSet.getString("city"));
+                        addresses.setProvince(addressResultSet.getString("province"));
+                        addresses.setPostcode(addressResultSet.getString("postcode"));
+                        data.put(addresses.toJsonObject());
+                    }
+                }
+            } else if ("cards".equalsIgnoreCase(pathSegments[1])) {
+                Cards cards = new Cards();
+                cards.setId(resultSet.getInt("id"));
+                cards.setCustomerId(resultSet.getInt("customer_id"));
+                cards.setCardNumber(resultSet.getString("card_number"));
+                cards.setExpiryDate(resultSet.getString("expiry_date"));
+                cards.setCardType(resultSet.getString("card_type"));
+                data.put(cards.toJsonObject());
+            } else if ("subscriptions".equalsIgnoreCase(pathSegments[1])) {
+                Subscriptions subscriptions = new Subscriptions();
+                subscriptions.setId(resultSet.getInt("id"));
+                subscriptions.setCustomerId(resultSet.getInt("customer_id"));
+                subscriptions.setStatus(resultSet.getString("status"));
+                subscriptions.setStartDate(resultSet.getDate("start_date"));
+                subscriptions.setEndDate(resultSet.getDate("end_date"));
+                data.put(subscriptions.toJsonObject());
+            }
+        }
+
+        resultSet.close();
+        statement.close();
+        conn.close();
+
+        return data.toString(2);
+    }
+
+    private String invalidPathResponse() {
+        return "{\"error\":\"Invalid path\"}";
+    }
+
+    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
+        exchange.sendResponseHeaders(statusCode, response.getBytes().length);
+        OutputStream os = exchange.getResponseBody();
+        os.write(response.getBytes());
+        os.close();
+    }
+
+    private class DatabaseConnection {
+        public Connection getConnection() {
+            return null;
         }
     }
 }
-
-

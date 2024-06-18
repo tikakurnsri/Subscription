@@ -2,7 +2,7 @@ package org.example;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.example.JSONObject;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -13,8 +13,11 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class HandlerPostCustomer implements HttpHandler {
-    private static Connection conn;
-    private DatabaseConnection DatabaseConnection;
+    private DatabaseConnection databaseConnection;
+
+    public HandlerPostCustomer(DatabaseConnection databaseConnection) {
+        this.databaseConnection = databaseConnection;
+    }
 
     @Override
     public void handle(HttpExchange exchange) {
@@ -39,20 +42,20 @@ public class HandlerPostCustomer implements HttpHandler {
                 String[] pathSegments = path.split("/");
 
                 // Menghubungkan ke database SQLite
-                conn = DatabaseConnection.getConnection();
-
-                if (pathSegments.length == 2 && pathSegments[1].equalsIgnoreCase("customers")) {
-                    addCustomer(jsonRequest);
-                } else if (pathSegments.length == 4 && pathSegments[1].equalsIgnoreCase("customers")) {
-                    String subResource = pathSegments[3];
-                    if (subResource.equalsIgnoreCase("cards")) {
-                        addCard(jsonRequest, Integer.parseInt(pathSegments[2]));
-                    } else if (subResource.equalsIgnoreCase("subscriptions")) {
-                        addSubscription(jsonRequest, Integer.parseInt(pathSegments[2]));
+                try (Connection conn = databaseConnection.getConnection()) {
+                    if (pathSegments.length == 2 && pathSegments[1].equalsIgnoreCase("customers")) {
+                        addCustomer(conn, jsonRequest);
+                    } else if (pathSegments.length == 4 && pathSegments[1].equalsIgnoreCase("customers")) {
+                        String subResource = pathSegments[3];
+                        if (subResource.equalsIgnoreCase("cards")) {
+                            addCard(conn, jsonRequest, Integer.parseInt(pathSegments[2]));
+                        } else if (subResource.equalsIgnoreCase("subscriptions")) {
+                            addSubscription(conn, jsonRequest, Integer.parseInt(pathSegments[2]));
+                        }
+                    } else {
+                        sendResponse(exchange, 400, "Invalid path");
+                        return;
                     }
-                } else {
-                    sendResponse(exchange, 400, "Invalid path");
-                    return;
                 }
 
                 sendResponse(exchange, 200, "Data successfully inserted");
@@ -73,7 +76,7 @@ public class HandlerPostCustomer implements HttpHandler {
         }
     }
 
-    private void addCustomer(JSONObject json) throws SQLException {
+    private void addCustomer(Connection conn, JSONObject json) throws SQLException {
         String sql = "INSERT INTO customers (first_name, last_name, email, phone_number) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, json.getString("first_name"));
@@ -84,7 +87,7 @@ public class HandlerPostCustomer implements HttpHandler {
         }
     }
 
-    private void addCard(JSONObject json, int customerId) throws SQLException {
+    private void addCard(Connection conn, JSONObject json, int customerId) throws SQLException {
         String sql = "INSERT INTO cards (customer_id, card_number, expiry_date, card_type) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, customerId);
@@ -95,7 +98,7 @@ public class HandlerPostCustomer implements HttpHandler {
         }
     }
 
-    private void addSubscription(JSONObject json, int customerId) throws SQLException {
+    private void addSubscription(Connection conn, JSONObject json, int customerId) throws SQLException {
         String sql = "INSERT INTO subscriptions (customer_id, status, start_date, end_date) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, customerId);
@@ -113,9 +116,10 @@ public class HandlerPostCustomer implements HttpHandler {
         os.close();
     }
 
-    private static class DatabaseConnection {
+    private class DatabaseConnection {
         public Connection getConnection() {
-            return null;
+            Connection o = null;
+            return o;
         }
     }
 }
