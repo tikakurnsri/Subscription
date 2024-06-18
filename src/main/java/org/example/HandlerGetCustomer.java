@@ -102,6 +102,7 @@ public class HandlerGetCustomer implements HttpHandler {
                             Addresses addresses = new Addresses();
                             addresses.setId(addressResultSet.getInt("id"));
                             addresses.setCustomerId(addressResultSet.getInt("customer_id"));
+                            addresses.setTitle(addressResultSet.getString("Title"));
                             addresses.setLine1(addressResultSet.getString("line1"));
                             addresses.setLine2(addressResultSet.getString("line2"));
                             addresses.setCity(addressResultSet.getString("city"));

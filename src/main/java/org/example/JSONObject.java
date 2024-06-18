@@ -7,4 +7,8 @@ public class JSONObject {
     public String getString(String phoneNumber) {
         return phoneNumber;
     }
+
+    public boolean has(String firstName) {
+        return false;
+    }
 }

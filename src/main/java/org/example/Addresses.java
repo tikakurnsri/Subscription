@@ -7,6 +7,9 @@ public class Addresses {
     public void setCustomerId(int customerId) {
     }
 
+    public void setTitle(String Title) {
+
+    }
     public void setLine1(String line1) {
     }
 

@@ -30,6 +30,11 @@ public class HandlerPostCustomer implements HttpHandler {
 
                 JSONObject jsonRequest = new JSONObject(requestBody.toString());
 
+                if (!jsonRequest.has("first_name") || !jsonRequest.has("last_name") || !jsonRequest.has("email") || !jsonRequest.has("phone_number")) {
+                    sendResponse(exchange, 400, "BAD REQUEST: Missing required fields");
+                    return;
+                }
+
                 String path = exchange.getRequestURI().getPath();
                 String[] pathSegments = path.split("/");
 
