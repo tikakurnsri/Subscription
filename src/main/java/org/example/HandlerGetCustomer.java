@@ -1,10 +1,14 @@
 package org.example;
 
 import com.sun.net.httpserver.HttpExchange;
+
+import java.io.IOException;
 import java.sql.*;
+
+import com.sun.net.httpserver.HttpHandler;
 import org.json.JSONArray;
 
-public class HandlerGetCustomer {
+public class HandlerGetCustomer implements HttpHandler {
     private static String tableName;
     private static String id;
     private static String path;
@@ -15,8 +19,10 @@ public class HandlerGetCustomer {
     private static ResultSet resultSet;
     private static Connection conn;
     private static Statement statement;
+    private static Fitur.DatabaseConnection DatabaseConnection;
+    //  private static DatabaseConnection DatabaseConnection;
 
-    public static String HandlerGetCustomer (HttpExchange exchange) throws SQLException {
+    public static String HandlerGetCustomer(HttpExchange exchange) throws SQLException {
         try {
             // Menghapus data pada JSONArray untuk menghindari duplikasi data
             data.clear();
@@ -81,7 +87,7 @@ public class HandlerGetCustomer {
             // Mengambil hasil query dan menyimpannya dalam JSONArray
             while (resultSet.next()) {
                 if (tableName.equals("customers")) {
-                    Customers customers = new Customers();
+                    Customer customers = new Customer();
                     customers.setId(resultSet.getInt("id"));
                     customers.setFirstName(resultSet.getString("first_name"));
                     customers.setLastName(resultSet.getString("last_name"));
@@ -136,5 +142,38 @@ public class HandlerGetCustomer {
         response = data.toString(2);
         return response;
     }
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+
+    }
+
+    private static class Fitur {
+        public static boolean invalidPath(HttpExchange exchange) {
+            return false;
+        }
+
+        public static boolean isValidTable(String tableName) {
+            return false;
+        }
+
+        public static boolean unvaliableTable(String tableName) {
+            return false;
+        }
+
+        private class DatabaseConnection {
+            private Connection connection;
+
+            public Connection getConnection() {
+                Connection connection = null;
+                return null;
+            }
+
+            public void setConnection(Connection connection) {
+                this.connection = connection;
+            }
+        }
+    }
 }
+
 

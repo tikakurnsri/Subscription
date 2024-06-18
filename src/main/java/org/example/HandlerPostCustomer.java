@@ -1,16 +1,20 @@
+package org.example;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.json.JSONObject;
+import org.example.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class HandlerPostCustomer implements HttpHandler {
     private static Connection conn;
+    private DatabaseConnection DatabaseConnection;
 
     @Override
     public void handle(HttpExchange exchange) {
@@ -24,17 +28,14 @@ public class HandlerPostCustomer implements HttpHandler {
                     requestBody.append(line);
                 }
 
-                // Mengonversi body permintaan ke JSONObject
                 JSONObject jsonRequest = new JSONObject(requestBody.toString());
 
-                // Mendapatkan path dari permintaan
                 String path = exchange.getRequestURI().getPath();
                 String[] pathSegments = path.split("/");
 
                 // Menghubungkan ke database SQLite
                 conn = DatabaseConnection.getConnection();
 
-                // Menangani permintaan berdasarkan path
                 if (pathSegments.length == 2 && pathSegments[1].equalsIgnoreCase("customers")) {
                     addCustomer(jsonRequest);
                 } else if (pathSegments.length == 4 && pathSegments[1].equalsIgnoreCase("customers")) {
@@ -105,5 +106,11 @@ public class HandlerPostCustomer implements HttpHandler {
         OutputStream os = exchange.getResponseBody();
         os.write(response.getBytes());
         os.close();
+    }
+
+    private static class DatabaseConnection {
+        public Connection getConnection() {
+            return null;
+        }
     }
 }

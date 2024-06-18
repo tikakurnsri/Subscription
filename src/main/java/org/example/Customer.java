@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+//import static org.example.HandlerGetCustomer.DatabaseConnection;
+
 public class Customer {
     private int id;
     private String firstName;
@@ -12,14 +14,20 @@ public class Customer {
     private String email;
     private String phoneNumber;
     private String type;
+    private String idCustomer;
 
-    public Customer(int id, String firstName, String lastName, String email, String phoneNumber, String type) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
-        this.type = type;
+    public Customer(String idCustomer) {
+//        this.id = id;
+//        this.firstName = firstName;
+//        this.lastName = lastName;
+//        this.email = email;
+//        this.phoneNumber = phoneNumber;
+//        this.type = type;
+        this.idCustomer = idCustomer;
+    }
+
+    public Customer() {
+
     }
 
     public int getId() {
@@ -99,6 +107,7 @@ public class Customer {
         try {
             Connection conn = DatabaseConnection.getConnection();
             String sql = "INSERT INTO users (first_name, last_name, email, phone_number, tipe) VALUES (?,?,?,?,?)";
+            assert conn != null;
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, firstName);
             pstmt.setString(2, lastName);
@@ -119,10 +128,17 @@ public class Customer {
                     "\" , email = \"" + email +
                     "\" , phone_number = \"" + phoneNumber +
                     "\" WHERE customers = " + idCustomer;
+            assert conn != null;
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    private static class DatabaseConnection {
+        public static Connection getConnection() {
+            return null;
         }
     }
 }

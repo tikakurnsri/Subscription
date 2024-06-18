@@ -1,3 +1,5 @@
+package org.example;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.json.JSONObject;
@@ -9,6 +11,7 @@ import java.sql.SQLException;
 
 public class HandlerDeleteCustomer implements HttpHandler {
     private static Connection conn;
+    private DatabaseConnection DatabaseConnection;
 
     @Override
     public void handle(HttpExchange exchange) {
@@ -62,5 +65,18 @@ public class HandlerDeleteCustomer implements HttpHandler {
         OutputStream os = exchange.getResponseBody();
         os.write(response.getBytes());
         os.close();
+    }
+
+    private class DatabaseConnection {
+        private Connection connection;
+
+        public Connection getConnection() {
+            Connection connection = null;
+            return null;
+        }
+
+        public void setConnection(Connection connection) {
+            this.connection = connection;
+        }
     }
 }
