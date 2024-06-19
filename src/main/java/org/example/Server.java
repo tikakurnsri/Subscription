@@ -69,54 +69,58 @@ public class Server {
 
 
         private static class ItemsHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange exchange) throws IOException {
-            String method = exchange.getRequestMethod();
-            switch (method) {
-                case "GET":
-                    handleGetItems(exchange);
-                    break;
-                case "POST":
-                    handlePostItems(exchange);
-                    break;
-                case "DELETE":
-                    handleDeleteItems(exchange);
-                    break;
-                case "PUT":
-                  //  handlePutItems(exchange);
-                    break;
-                default:
-                    sendResponse(exchange, 405, "Method Not Allowed");
-                    break;
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+                String method = exchange.getRequestMethod();
+                switch (method) {
+                    case "GET":
+                        handleGetItems(exchange);
+                        break;
+                    case "POST":
+                        handlePostItems(exchange);
+                        break;
+                    case "DELETE":
+                        handleDeleteItems(exchange);
+                        break;
+                    case "PUT":
+                        //  handlePutItems(exchange);
+                        break;
+                    default:
+                        sendResponse(exchange, 405, "Method Not Allowed");
+                        break;
+                }
             }
-        }
-        private void handleGetItems(HttpExchange exchange) {
-        }
-        private void handlePostItems(HttpExchange exchange) {
-        }
-        private void handleDeleteItems(HttpExchange exchange) {
-        }
 
-        private void handleGetRequest(HttpExchange exchange) throws IOException {
-            String response = "This is the GET response";
-            sendResponse(exchange, 200, response);
-        }
+            private void handleGetItems(HttpExchange exchange) {
+            }
 
-        private void handlePostRequest(HttpExchange exchange) throws IOException {
-            String response = "This is the POST response";
-            sendResponse(exchange, 200, response);
-        }
+            private void handlePostItems(HttpExchange exchange) {
+            }
 
-        private void handleDeleteRequest(HttpExchange exchange) throws IOException {
-            String response = "This is the DELETE response";
-            sendResponse(exchange, 200, response);
-        }
+            private void handleDeleteItems(HttpExchange exchange) {
+            }
 
-        private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
-            exchange.sendResponseHeaders(statusCode, response.getBytes().length);
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
+            private void handleGetRequest(HttpExchange exchange) throws IOException {
+                String response = "This is the GET response";
+                sendResponse(exchange, 200, response);
+            }
+
+            private void handlePostRequest(HttpExchange exchange) throws IOException {
+                String response = "This is the POST response";
+                sendResponse(exchange, 200, response);
+            }
+
+            private void handleDeleteRequest(HttpExchange exchange) throws IOException {
+                String response = "This is the DELETE response";
+                sendResponse(exchange, 200, response);
+            }
+
+            private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
+                exchange.sendResponseHeaders(statusCode, response.getBytes().length);
+                OutputStream os = exchange.getResponseBody();
+                os.write(response.getBytes());
+                os.close();
+            }
         }
     }
 }
