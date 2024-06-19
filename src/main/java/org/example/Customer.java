@@ -103,7 +103,7 @@ public class Customer {
         return 0;
     }
 
-    public void insertCustomers() {
+    public void addCustomers() {
         try {
             Connection conn = DatabaseConnection.getConnection();
             String sql = "INSERT INTO users (first_name, last_name, email, phone_number, tipe) VALUES (?,?,?,?,?)";

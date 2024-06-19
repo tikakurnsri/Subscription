@@ -15,12 +15,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class HandlerPostCustomer implements HttpHandler {
-    private DatabaseConnection databaseConnection;
-
-    public HandlerPostCustomer(DatabaseConnection databaseConnection) {
-        this.databaseConnection = databaseConnection;
-    }
-
     @Override
     public void handle(HttpExchange exchange) {
         if ("POST".equals(exchange.getRequestMethod())) {
@@ -44,7 +38,7 @@ public class HandlerPostCustomer implements HttpHandler {
                 String[] pathSegments = path.split("/");
 
                 // Menghubungkan ke database SQLite
-                try (Connection conn = databaseConnection.getConnection()) {
+                try (Connection conn = DatabaseConnection.getConnection()) {
                     if (pathSegments.length == 2 && pathSegments[1].equalsIgnoreCase("customers")) {
                         addCustomer(conn, jsonRequest);
                     } else if (pathSegments.length == 4 && pathSegments[1].equalsIgnoreCase("customers")) {
@@ -117,15 +111,3 @@ public class HandlerPostCustomer implements HttpHandler {
     }
 }
 
-class DatabaseConnection {
-    private Connection connection;
-
-    public Connection getConnection() throws SQLException {
-        // Assuming SQLite database
-        String url = "jdbc:sqlite:sample.db";
-        if (connection == null || connection.isClosed()) {
-            connection = DriverManager.getConnection(url);
-        }
-        return connection;
-    }
-}

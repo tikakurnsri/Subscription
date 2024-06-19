@@ -2,17 +2,13 @@ package org.example;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import org.json.JSONArray;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.sql.*;
 
 public abstract class HandlerPostItems implements HttpHandler {
-    private HandlerGetCustomer.DatabaseConnection databaseConnection;
-
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if ("POST".equals(exchange.getRequestMethod())) {
@@ -29,6 +25,9 @@ public abstract class HandlerPostItems implements HttpHandler {
         } else {
             sendResponse(exchange, 405, "Method Not Allowed");
         }
+    }
+
+    private void sendResponse(HttpExchange exchange, int i, String methodNotAllowed) {
     }
 
     private String handlePostItems(HttpExchange exchange) throws IOException, SQLException {
@@ -54,7 +53,7 @@ public abstract class HandlerPostItems implements HttpHandler {
             throw new IllegalArgumentException("BAD REQUEST: Invalid type");
         }
 
-        try (Connection conn = databaseConnection.getConnection()) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "INSERT INTO items (name, price, type, is_active) VALUES (?, ?, ?, ?)";
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, name);
@@ -67,11 +66,7 @@ public abstract class HandlerPostItems implements HttpHandler {
 
         return "Item successfully created";
     }
-
-    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
-        exchange.sendResponseHeaders(statusCode, response.getBytes().length);
-        try (OutputStream os = exchange.getResponseBody()) {
-            os.write(response.getBytes());
-        }
     }
-}
+
+
+
