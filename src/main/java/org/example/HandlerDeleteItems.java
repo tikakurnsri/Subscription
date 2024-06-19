@@ -9,26 +9,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class HandlerPutDeleteItems implements HttpHandler {
+public class HandlerDeleteItems implements HttpHandler {
     private final HandlerPutCustomer.DatabaseConnection databaseConnection;
 
-    public HandlerPutDeleteItems(HandlerPutCustomer.DatabaseConnection databaseConnection) {
+    public HandlerDeleteItems(HandlerPutCustomer.DatabaseConnection databaseConnection) {
         this.databaseConnection = databaseConnection;
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        String method = exchange.getRequestMethod();
-        if ("PUT".equals(method) || "DELETE".equals(method)) {
-            String response;
+        if ("DELETE".equals(exchange.getRequestMethod())) {
             try {
-                if (method.equals("PUT")) {
-                    response = handlePutRequest(exchange);
-                    sendResponse(exchange, 200, response);
-                } else {
-                    response = handleDeleteRequest(exchange);
-                    sendResponse(exchange, 200, response);
-                }
+                String response = handleDeleteRequest(exchange);
+                sendResponse(exchange, 200, response);
             } catch (SQLException e) {
                 e.printStackTrace();
                 sendResponse(exchange, 500, "Internal server error");
@@ -38,30 +31,6 @@ public class HandlerPutDeleteItems implements HttpHandler {
         } else {
             sendResponse(exchange, 405, "Method Not Allowed");
         }
-    }
-
-    private String handlePutRequest(HttpExchange exchange) throws SQLException, IOException {
-        // Mendapatkan path dari permintaan
-        String path = exchange.getRequestURI().getPath();
-        String[] pathSegments = path.split("/");
-
-        if (pathSegments.length != 3 || !pathSegments[1].equalsIgnoreCase("items")) {
-            throw new IllegalArgumentException("Invalid path");
-        }
-
-        int itemId = Integer.parseInt(pathSegments[2]);
-
-        // Menghubungkan ke database SQLite
-        try (Connection conn = databaseConnection.getConnection()) {
-            String sql = "UPDATE items SET is_active = ? WHERE id = ?";
-            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setBoolean(1, true);
-                pstmt.setInt(2, itemId);
-                pstmt.executeUpdate();
-            }
-        }
-
-        return "Item successfully updated";
     }
 
     private String handleDeleteRequest(HttpExchange exchange) throws SQLException, IOException {

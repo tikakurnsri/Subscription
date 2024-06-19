@@ -3,78 +3,52 @@ package org.example;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public abstract class HandlerDeleteCustomer implements HttpHandler {
-    private static Connection conn;
-    private DatabaseConnection DatabaseConnection;
-
-    public void handleDeleteCsutomer(HttpExchange exchange) {
+public class HandlerDeleteCustomer implements HttpHandler {
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
         if ("DELETE".equals(exchange.getRequestMethod())) {
+            String response;
             try {
-                // Mendapatkan path dari permintaan
                 String path = exchange.getRequestURI().getPath();
                 String[] pathSegments = path.split("/");
 
-                // Memeriksa path untuk validitas
                 if (pathSegments.length == 3 && pathSegments[1].equalsIgnoreCase("customers")) {
                     String id = pathSegments[2];
-
-                    // Menghubungkan ke database SQLite
-                    conn = DatabaseConnection.getConnection();
-
-                    // Menghapus pelanggan berdasarkan ID
                     deleteCustomer(id);
-
-                    sendResponse(exchange, 200, "Customer deleted successfully");
+                    response = "Customer deleted successfully";
+                    sendResponse(exchange, 200, response);
                 } else {
                     sendResponse(exchange, 400, "Invalid path");
                 }
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 e.printStackTrace();
-                try {
-                    sendResponse(exchange, 500, "Internal server error");
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
+                sendResponse(exchange, 500, "Internal server error");
             }
         } else {
-            try {
-                sendResponse(exchange, 405, "Method Not Allowed");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            sendResponse(exchange, 405, "Method Not Allowed");
         }
     }
 
     private void deleteCustomer(String id) throws SQLException {
-        String sql = "DELETE FROM customers WHERE id = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, Integer.parseInt(id));
-            pstmt.executeUpdate();
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "DELETE FROM users WHERE id = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setInt(1, Integer.parseInt(id));
+                pstmt.executeUpdate();
+            }
         }
     }
 
-    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws Exception {
+    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
         exchange.sendResponseHeaders(statusCode, response.getBytes().length);
-        OutputStream os = exchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
-    }
-
-    private class DatabaseConnection {
-        private Connection connection;
-
-        public Connection getConnection() {
-            Connection connection = null;
-            return null;
-        }
-
-        public void setConnection(Connection connection) {
-            this.connection = connection;
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(response.getBytes());
         }
     }
 }

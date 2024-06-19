@@ -40,7 +40,6 @@ public abstract class HandlerPostItems implements HttpHandler {
 
         JSONObject jsonRequest = new JSONObject(requestBody.toString());
 
-        // Memastikan semua data yang diperlukan ada
         if (!jsonRequest.has("name") || !jsonRequest.has("price") || !jsonRequest.has("type")) {
             throw new IllegalArgumentException("BAD REQUEST: Missing required fields");
         }
