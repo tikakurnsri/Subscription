@@ -1,15 +1,16 @@
 package org.example;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.sql.SQLException;
+import java.util.stream.Collectors;
 
 public class Server {
     private int port;
@@ -42,35 +43,38 @@ public class Server {
             try {
                 switch (method) {
                     case "GET":
-                        if (pathSegments.length == 2 && pathSegments[1].equalsIgnoreCase("customers")) {
-                            response.handleGet("customers", null);
-                        } else if (pathSegments.length == 3 && pathSegments[1].equalsIgnoreCase("customers")) {
+                        if (pathSegments.length == 2 && pathSegments[1].equalsIgnoreCase("Customers")) {
+                            int customerId = 0;
+                            response.handleGet("Customers", customerId, null);
+                        } else if (pathSegments.length == 3 && pathSegments[1].equalsIgnoreCase("Customers")) {
                             int customerId = Integer.parseInt(pathSegments[2]);
-                            response.handleGet("customers", customerId, null);
-                        } else if (pathSegments.length == 4 && pathSegments[1].equalsIgnoreCase("customers")) {
+                            response.handleGet("Customers", customerId, null);
+                        } else if (pathSegments.length == 4 && pathSegments[1].equalsIgnoreCase("Customers")) {
                             int customerId = Integer.parseInt(pathSegments[2]);
                             String detail = pathSegments[3];
-                            response.handleGet("customers", customerId, detail);
+                            response.handleGet("Customers", customerId, detail);
                         } else {
                             response.send(400, "{\"status\": 400, \"message\": \"Invalid path\"}");
                         }
                         break;
 
-                    case "POST":
-                        if (pathSegments.length == 2 && pathSegments[1].equalsIgnoreCase("customers")) {
-                            InputStream inputStream = exchange.getRequestBody();
-                            JsonNode jsonNode = new ObjectMapper().readTree(inputStream);
-                            response.handlePost("customers", jsonNode);
-                        } else if (pathSegments.length == 4 && pathSegments[1].equalsIgnoreCase("customers")) {
+                  case "POST":
+                        if (pathSegments.length == 2 && pathSegments[1].equalsIgnoreCase("Customers")) {
+                            String requestBody = new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
+                                    .lines().collect(Collectors.joining("\n"));
+                            JSONObject jsonObject = new JSONObject(requestBody);
+                            response.handlePost("Customers", jsonObject);
+                        } else if (pathSegments.length == 4 && pathSegments[1].equalsIgnoreCase("Customers")) {
                             int customerId = Integer.parseInt(pathSegments[2]);
                             String subResource = pathSegments[3];
-                            InputStream inputStream = exchange.getRequestBody();
-                            JsonNode jsonNode = new ObjectMapper().readTree(inputStream);
+                            String requestBody = new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
+                                    .lines().collect(Collectors.joining("\n"));
+                            JSONObject jsonObject = new JSONObject(requestBody);
 
-                            if (subResource.equalsIgnoreCase("cards")) {
-                                response.handlePost("cards", jsonNode);
-                            } else if (subResource.equalsIgnoreCase("subscriptions")) {
-                                response.handlePost("subscriptions", jsonNode);
+                            if (subResource.equalsIgnoreCase("Cards")) {
+                                response.handlePost("Cards", jsonObject);
+                            } else if (subResource.equalsIgnoreCase("subcription")) {
+                                response.handlePost("subcription", jsonObject);
                             } else {
                                 response.send(400, "{\"status\": 400, \"message\": \"Invalid sub-resource\"}");
                             }
@@ -80,20 +84,21 @@ public class Server {
                         break;
 
                     case "PUT":
-                        if (pathSegments.length == 3 && pathSegments[1].equalsIgnoreCase("customers")) {
+                        if (pathSegments.length == 3 && pathSegments[1].equalsIgnoreCase("Customers")) {
                             int customerId = Integer.parseInt(pathSegments[2]);
-                            InputStream inputStream = exchange.getRequestBody();
-                            JsonNode jsonNode = new ObjectMapper().readTree(inputStream);
-                            response.handlePut("customers", customerId, jsonNode);
+                            String requestBody = new BufferedReader(new InputStreamReader(exchange.getRequestBody()))
+                                    .lines().collect(Collectors.joining("\n"));
+                            JSONObject jsonObject = new JSONObject(requestBody);
+                            response.handlePut("Customers", customerId, jsonObject);
                         } else {
                             response.send(400, "{\"status\": 400, \"message\": \"Invalid path\"}");
                         }
                         break;
 
                     case "DELETE":
-                        if (pathSegments.length == 3 && pathSegments[1].equalsIgnoreCase("customers")) {
+                        if (pathSegments.length == 3 && pathSegments[1].equalsIgnoreCase("Customers")) {
                             int customerId = Integer.parseInt(pathSegments[2]);
-                            response.handleDelete("customers", customerId);
+                            response.handleDelete("Customers", customerId);
                         } else {
                             response.send(400, "{\"status\": 400, \"message\": \"Invalid path\"}");
                         }
@@ -105,11 +110,10 @@ public class Server {
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
-                response.send(500, "{\"status\": 500, \"message\": \"Internal server error\"}");
             } catch (Exception e) {
                 e.printStackTrace();
                 response.send(500, "{\"status\": 500, \"message\": \"Internal server error\"}");
             }
+            }
         }
     }
-}

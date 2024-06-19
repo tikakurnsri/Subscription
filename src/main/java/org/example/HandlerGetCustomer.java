@@ -29,13 +29,13 @@ public class HandlerGetCustomer {
                 if ("cards".equalsIgnoreCase(pathSegments[3])) {
                     query = "SELECT * FROM cards WHERE customer_id = " + pathSegments[2];
                 } else if ("subscriptions".equalsIgnoreCase(pathSegments[3])) {
-                    query = "SELECT * FROM subscriptions WHERE customer_id = " + pathSegments[2];
+                    query = "SELECT * FROM subcription WHERE customer_id = " + pathSegments[2];
                 } else {
                     sendResponse(exchange, 400, invalidPathResponse());
                     return;
                 }
-            } else if (pathSegments.length == 5 && "customers".equalsIgnoreCase(pathSegments[1]) && "subscriptions".equalsIgnoreCase(pathSegments[3])) {
-                query = "SELECT * FROM subscriptions WHERE customer_id = " + pathSegments[2] + " AND status = '" + pathSegments[4] + "'";
+            } else if (pathSegments.length == 5 && "customers".equalsIgnoreCase(pathSegments[1]) && "subcription".equalsIgnoreCase(pathSegments[3])) {
+                query = "SELECT * FROM subcription WHERE customer_id = " + pathSegments[2] + " AND status = '" + pathSegments[4] + "'";
             } else {
                 sendResponse(exchange, 400, invalidPathResponse());
                 return;
@@ -53,7 +53,7 @@ public class HandlerGetCustomer {
                     data.put(customer);
 
                     if (pathSegments.length == 3) {
-                        String addressQuery = "SELECT * FROM addresses WHERE customer_id = " + pathSegments[2];
+                        String addressQuery = "SELECT * FROM shipping_addresses WHERE customer_id = " + pathSegments[2];
                         try (ResultSet addressResultSet = statement.executeQuery(addressQuery)) {
                             while (addressResultSet.next()) {
                                 JSONObject address = new JSONObject();
@@ -77,7 +77,7 @@ public class HandlerGetCustomer {
                     card.put("expiryDate", resultSet.getString("expiry_date"));
                     card.put("cardType", resultSet.getString("card_type"));
                     data.put(card);
-                } else if ("subscriptions".equalsIgnoreCase(pathSegments[1])) {
+                } else if ("subcription".equalsIgnoreCase(pathSegments[1])) {
                     JSONObject subscription = new JSONObject();
                     subscription.put("id", resultSet.getInt("id"));
                     subscription.put("customerId", resultSet.getInt("customer_id"));
