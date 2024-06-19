@@ -90,4 +90,10 @@ public class Cards {
         json.put("is_primary", this.isPrimary);
         return json;
     }
+
+    public void setCardNumber(String cardNumber) {
+    }
+
+    public void setExpiryDate(String expiryDate) {
+    }
 }

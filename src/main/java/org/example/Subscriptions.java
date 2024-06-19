@@ -102,4 +102,14 @@ public class Subscriptions {
         json.put("status", this.status);
         return json;
     }
+
+    public void setCustomerId(int customerId) {
+    }
+
+    public void setStartDate(Date startDate) {
+    }
+
+    public void setEndDate(Date endDate) {
+
+    }
 }

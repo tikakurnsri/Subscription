@@ -9,7 +9,7 @@ public class DatabaseConnection {
         if (conn == null) {
             try {
                 // URL koneksi ke database SQLite
-                String url = "jdbc:sqlite:/C:/Users/kurni/Documents/subscription.db";
+                String url = "jdbc:sqlite:/C:/Users/kurni/Documents/database/subcription.db";
                 conn = DriverManager.getConnection(url);
             } catch (SQLException e) {
                 System.out.println(e.getMessage());
