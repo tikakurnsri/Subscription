@@ -5,10 +5,12 @@ import com.sun.net.httpserver.HttpHandler;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
@@ -54,11 +56,9 @@ public class HandlerPostCustomer implements HttpHandler {
                         }
                     } else {
                         sendResponse(exchange, 400, "Invalid path");
-                        return;
                     }
+                    sendResponse(exchange, 201, "Customer added successfully");
                 }
-
-                sendResponse(exchange, 200, "Data successfully inserted");
             } catch (Exception e) {
                 e.printStackTrace();
                 try {
@@ -109,17 +109,23 @@ public class HandlerPostCustomer implements HttpHandler {
         }
     }
 
-    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws Exception {
+    private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
         exchange.sendResponseHeaders(statusCode, response.getBytes().length);
         OutputStream os = exchange.getResponseBody();
         os.write(response.getBytes());
         os.close();
     }
+}
 
-    private class DatabaseConnection {
-        public Connection getConnection() {
-            Connection o = null;
-            return o;
+class DatabaseConnection {
+    private Connection connection;
+
+    public Connection getConnection() throws SQLException {
+        // Assuming SQLite database
+        String url = "jdbc:sqlite:sample.db";
+        if (connection == null || connection.isClosed()) {
+            connection = DriverManager.getConnection(url);
         }
+        return connection;
     }
 }

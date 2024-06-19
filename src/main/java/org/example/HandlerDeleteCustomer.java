@@ -9,12 +9,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class HandlerDeleteCustomer implements HttpHandler {
+public abstract class HandlerDeleteCustomer implements HttpHandler {
     private static Connection conn;
     private DatabaseConnection DatabaseConnection;
 
-    @Override
-    public void handle(HttpExchange exchange) {
+    public void handleDeleteCsutomer(HttpExchange exchange) {
         if ("DELETE".equals(exchange.getRequestMethod())) {
             try {
                 // Mendapatkan path dari permintaan

@@ -8,23 +8,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.*;
 
-public class HandlerGetCustomer implements HttpHandler {
+public abstract class HandlerGetCustomer implements HttpHandler {
     private DatabaseConnection databaseConnection;
 
     public HandlerGetCustomer() {
-        this.databaseConnection = databaseConnection;
-    }
-
-    @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        String response;
-        try {
-            response = handleGetCustomer(exchange);
-            sendResponse(exchange, 200, response);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            sendResponse(exchange, 500, "Internal server error");
-        }
     }
 
     private String handleGetCustomer(HttpExchange exchange) throws SQLException {
@@ -133,7 +120,7 @@ public class HandlerGetCustomer implements HttpHandler {
         os.close();
     }
 
-    private class DatabaseConnection {
+    static class DatabaseConnection {
         public Connection getConnection() {
             return null;
         }

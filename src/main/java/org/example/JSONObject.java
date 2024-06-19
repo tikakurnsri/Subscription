@@ -11,4 +11,8 @@ public class JSONObject {
     public boolean has(String firstName) {
         return false;
     }
+
+    public int getInt(String price) {
+        return 0;
+    }
 }
