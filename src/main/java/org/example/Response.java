@@ -18,91 +18,91 @@ public class Response {
 
     public void handleGet(String tableName, int customerId, String condition) throws IOException, SQLException {
         Result result = database.selectFromTable(tableName, condition);
-        int statusCode = result.getStatus();
-
-        if (result.isSukses()) {
-            JSONObject responseJson = new JSONObject();
-            responseJson.put("status", statusCode);
-            responseJson.put("message", result.getPesan());
-            responseJson.put("data", result.getData());
-            this.send(statusCode, responseJson.toString());
-        } else {
-            JSONObject responseJson = new JSONObject();
-            responseJson.put("status", statusCode);
-            responseJson.put("message", result.getPesan());
-            this.send(statusCode, responseJson.toString());
-        }
+        sendJsonResponse(result);
     }
 
     public void handlePost(String tableName, JSONObject jsonObject) throws IOException {
-        StringBuilder fieldKeys = new StringBuilder();
-        StringBuilder fieldValues = new StringBuilder();
+        try {
+            StringBuilder fieldKeys = new StringBuilder();
+            StringBuilder fieldValues = new StringBuilder();
 
-        Iterator<String> keys = jsonObject.keys();
+            Iterator<String> keys = jsonObject.keys();
 
-        while (keys.hasNext()) {
-            String key = keys.next();
-            fieldKeys.append(key).append(",");
-            fieldValues.append("'").append(jsonObject.getString(key)).append("',");
+            while (keys.hasNext()) {
+                String key = keys.next();
+                fieldKeys.append(key).append(",");
+                fieldValues.append("'").append(jsonObject.getString(key)).append("',");
+            }
+
+            // Remove the trailing comma
+            if (fieldKeys.length() > 0) {
+                fieldKeys.deleteCharAt(fieldKeys.length() - 1);
+                fieldValues.deleteCharAt(fieldValues.length() - 1);
+            }
+
+            Result result = database.insertToTable(tableName, fieldKeys.toString(), fieldValues.toString());
+            sendJsonResponse(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendErrorResponse(500, "Internal server error");
         }
-
-        // Remove the comma (,) character at the end of the string
-        fieldKeys.deleteCharAt(fieldKeys.length() - 1);
-        fieldValues.deleteCharAt(fieldValues.length() - 1);
-
-        Result result = database.insertToTable(tableName, fieldKeys.toString(), fieldValues.toString());
-        int statusCode = result.getStatus();
-
-        JSONObject responseJson = new JSONObject();
-        responseJson.put("status", statusCode);
-        responseJson.put("message", result.getPesan());
-        responseJson.put("data", result.getData());
-
-        this.send(statusCode, responseJson.toString());
     }
 
     public void handlePut(String tableName, int id, JSONObject jsonObject) throws IOException {
-        StringBuilder fieldKeys = new StringBuilder();
+        try {
+            StringBuilder fieldKeys = new StringBuilder();
 
-        Iterator<String> keys = jsonObject.keys();
+            Iterator<String> keys = jsonObject.keys();
 
-        while (keys.hasNext()) {
-            String key = keys.next();
-            fieldKeys.append(key).append("='").append(jsonObject.getString(key)).append("',");
+            while (keys.hasNext()) {
+                String key = keys.next();
+                fieldKeys.append(key).append("='").append(jsonObject.getString(key)).append("',");
+            }
+
+            // Remove the trailing comma
+            if (fieldKeys.length() > 0) {
+                fieldKeys.deleteCharAt(fieldKeys.length() - 1);
+            }
+
+            Result result = database.updateTable(tableName, id, fieldKeys.toString());
+            sendJsonResponse(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendErrorResponse(500, "Internal server error");
         }
-
-        // Remove the comma (,) character at the end of the string
-        fieldKeys.deleteCharAt(fieldKeys.length() - 1);
-
-        Result result = database.updateTable(tableName, id, fieldKeys.toString());
-        int statusCode = result.getStatus();
-
-        JSONObject responseJson = new JSONObject();
-        responseJson.put("status", statusCode);
-        responseJson.put("message", result.getPesan());
-        responseJson.put("data", result.getData());
-
-        this.send(statusCode, responseJson.toString());
     }
 
     public void handleDelete(String tableName, int id) throws IOException {
-        Result result = database.deleteTable(tableName, id);
-        int statusCode = result.getStatus();
-
-        JSONObject responseJson = new JSONObject();
-        responseJson.put("status", statusCode);
-        responseJson.put("message", result.getPesan());
-        responseJson.put("data", result.getData());
-
-        this.send(statusCode, responseJson.toString());
+        try {
+            Result result = database.deleteTable(tableName, id);
+            sendJsonResponse(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendErrorResponse(500, "Internal server error");
+        }
     }
 
-    public void send(int statusCode, String jsonMessage) throws IOException {
+    private void sendJsonResponse(Result result) throws IOException {
+        JSONObject responseJson = new JSONObject();
+        responseJson.put("status", result.getStatus());
+        responseJson.put("message", result.getPesan());
+        responseJson.put("data", result.getData() != null ? result.getData() : JSONObject.NULL);
+        send(result.getStatus(), responseJson.toString());
+    }
+
+    private void sendErrorResponse(int statusCode, String message) throws IOException {
+        JSONObject responseJson = new JSONObject();
+        responseJson.put("status", statusCode);
+        responseJson.put("message", message);
+        responseJson.put("data", JSONObject.NULL);
+        send(statusCode, responseJson.toString());
+    }
+
+    void send(int statusCode, String jsonMessage) throws IOException {
         exchange.getResponseHeaders().add("Content-Type", "application/json");
         exchange.sendResponseHeaders(statusCode, jsonMessage.length());
-        OutputStream outputStream = exchange.getResponseBody();
-        outputStream.write(jsonMessage.getBytes());
-        outputStream.flush();
-        outputStream.close();
+        try (OutputStream outputStream = exchange.getResponseBody()) {
+            outputStream.write(jsonMessage.getBytes());
+        }
     }
 }

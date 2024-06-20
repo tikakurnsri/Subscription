@@ -1,7 +1,9 @@
 package org.example;
 
+import org.json.JSONObject;
+
 public class Result {
-  private final int status;
+    private final int status;
     private final boolean sukses;
     private final String pesan;
     private final String data;
@@ -28,5 +30,13 @@ public class Result {
 
     public String getData() {
         return data;
+    }
+    public String toJson() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("status", status);
+        jsonObject.put("sukses", sukses);
+        jsonObject.put("pesan", pesan);
+        jsonObject.put("data", data);
+        return jsonObject.toString();
     }
 }

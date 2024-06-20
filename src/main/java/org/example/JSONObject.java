@@ -1,7 +1,8 @@
 package org.example;
 
 public class JSONObject {
-    public JSONObject(String string) {
+
+    public JSONObject() {
     }
 
     public String getString(String phoneNumber) {
@@ -14,5 +15,8 @@ public class JSONObject {
 
     public int getInt(String price) {
         return 0;
+    }
+
+    public void put(String status, int status1) {
     }
 }

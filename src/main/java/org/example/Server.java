@@ -28,7 +28,7 @@ public class Server {
     private void startServer() throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress("localhost", port), 0);
         server.createContext("/customers", new CustomerHandler());
-        server.setExecutor(null); // creates a default executor
+        server.setExecutor(null);
         server.start();
         System.out.printf("Server started on port %d...\n", port);
     }
@@ -45,7 +45,7 @@ public class Server {
             try {
                 switch (method) {
                     case "GET":
-                        handleGet(exchange, pathSegments, response);
+                        handleGetCustomer(exchange, pathSegments, response);
                         break;
                     case "POST":
                         handlePost(exchange, pathSegments, response);
@@ -66,7 +66,7 @@ public class Server {
             }
         }
 
-        private void handleGet(HttpExchange exchange, String[] pathSegments, Response response) throws IOException, SQLException {
+        private void handleGetCustomer(HttpExchange exchange, String[] pathSegments, Response response) throws IOException, SQLException {
             if (pathSegments.length == 2 && pathSegments[1].equalsIgnoreCase("customers")) {
                 response.handleGet("customers", 0, null);
             } else if (pathSegments.length == 3 && pathSegments[1].equalsIgnoreCase("customers")) {

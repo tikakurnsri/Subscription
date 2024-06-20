@@ -3,7 +3,7 @@ package org.example;
 import java.sql.*;
 
 public class DatabaseConnection {
-    private static final String DB_URL = "jdbc:sqlite:subcription.db";
+    private static final String DB_URL = "jdbc:sqlite:database/subcription.db";
     private static Connection connection = null;
 
     static {
