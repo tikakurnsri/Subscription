@@ -118,13 +118,13 @@ public class SubscriptionHandler implements HttpHandler {
     private Subscription mapResultSetToSubscription(ResultSet rs) throws SQLException {
         Subscription subscription = new Subscription();
         subscription.setId(rs.getInt("id"));
-        subscription.setCustomerId(rs.getInt("customer_id"));
-        subscription.setBillingPeriod(String.valueOf(rs.getInt("billing_period")));
+        subscription.setCustomerId(rs.getInt("customers"));
+        subscription.setBillingPeriod(rs.getInt("billing_period"));
         subscription.setBillingPeriodUnit(rs.getString("billing_period_unit"));
-        subscription.setTotalDue(rs.getDouble("total_due"));
-        subscription.setActivatedAt(rs.getTimestamp("activated_at"));
-        subscription.setCurrentTermStart(rs.getTimestamp("current_term_start"));
-        subscription.setCurrentTermEnd(rs.getTimestamp("current_term_end"));
+        subscription.setTotalDue(rs.getInt("total_due"));
+        subscription.setActivatedAt(rs.getString("activated_at"));
+        subscription.setCurrentTermStart(rs.getString("current_term_start"));
+        subscription.setCurrentTermEnd(rs.getString("current_term_end"));
         subscription.setStatus(rs.getString("status"));
         return subscription;
     }
@@ -132,19 +132,19 @@ public class SubscriptionHandler implements HttpHandler {
     private List<SubscriptionItem> getSubscriptionItems(Connection conn, int subscriptionId) throws SQLException {
         List<SubscriptionItem> items = new ArrayList<>();
         String sql = "SELECT si.*, i.name, i.price, i.type FROM subscription_items si " +
-                "JOIN items i ON si.item_id = i.id " +
-                "WHERE subscription_id = ?";
+                "JOIN items i ON si.item = i.id " +
+                "WHERE subscription = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, subscriptionId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     SubscriptionItem item = new SubscriptionItem();
-                    item.setItemId(rs.getInt("item_id"));
+                    item.setItemId(rs.getInt("item"));
                     item.setQuantity(rs.getInt("quantity"));
                     item.setAmount(rs.getDouble("amount"));
 
                     Item subscriptionItem = new Item();
-                    subscriptionItem.setId(rs.getInt("item_id"));
+                    subscriptionItem.setId(rs.getInt("item"));
                     subscriptionItem.setName(rs.getString("name"));
                     subscriptionItem.setPrice(rs.getDouble("price"));
                     subscriptionItem.setType(rs.getString("type"));
@@ -166,7 +166,7 @@ public class SubscriptionHandler implements HttpHandler {
         for (Subscription subscription : subscriptions) {
             JSONObject subscriptionJson = new JSONObject();
             subscriptionJson.put("id", subscription.getId());
-            subscriptionJson.put("customer_id", subscription.getCustomerId());
+            subscriptionJson.put("customers", subscription.getCustomerId());
             subscriptionJson.put("billing_period", subscription.getBillingPeriod());
             subscriptionJson.put("billing_period_unit", subscription.getBillingPeriodUnit());
             subscriptionJson.put("total_due", subscription.getTotalDue());
@@ -178,7 +178,7 @@ public class SubscriptionHandler implements HttpHandler {
             JSONArray itemsArray = new JSONArray();
             for (SubscriptionItem item : subscription.getItems()) {
                 JSONObject itemJson = new JSONObject();
-                itemJson.put("item_id", item.getItem().getId());
+                itemJson.put("item", item.getItem().getId());
                 itemJson.put("name", item.getItem().getName());
                 itemJson.put("price", item.getItem().getPrice());
                 itemJson.put("type", item.getItem().getType());
@@ -207,7 +207,7 @@ public class SubscriptionHandler implements HttpHandler {
 
         try (Connection conn = DatabaseConnection.getConnection()) {
             String sql = "SELECT s.*, c.first_name, c.last_name FROM subscriptions s " +
-                    "JOIN customers c ON s.customer_id = c.id " +
+                    "JOIN customers c ON s.customers = c.id " +
                     "WHERE s.id = ?";
             try (PreparedStatement stmt = conn.prepareStatement(sql)) {
                 stmt.setInt(1, subscriptionId);
@@ -218,7 +218,7 @@ public class SubscriptionHandler implements HttpHandler {
 
                         // Membuat objek Customer dan menetapkan propertinya
                         Customer customer = new Customer();
-                        customer.setId(rs.getInt("customer_id"));
+                        customer.setId(rs.getInt("customers"));
                         customer.setFirstName(rs.getString("first_name"));
                         customer.setLastName(rs.getString("last_name"));
 
@@ -238,7 +238,7 @@ public class SubscriptionHandler implements HttpHandler {
     private JSONObject serializeSubscriptionToJson(Subscription subscription, Customer customer) {
         JSONObject subscriptionJson = new JSONObject();
         subscriptionJson.put("id", subscription.getId());
-        subscriptionJson.put("customer_id", customer.getId());
+        subscriptionJson.put("customers", customer.getId());
         subscriptionJson.put("first_name", customer.getFirstName());
         subscriptionJson.put("last_name", customer.getLastName());
         subscriptionJson.put("billing_period", subscription.getBillingPeriod());
@@ -252,7 +252,7 @@ public class SubscriptionHandler implements HttpHandler {
         JSONArray itemsArray = new JSONArray();
         for (SubscriptionItem item : subscription.getItems()) {
             JSONObject itemJson = new JSONObject();
-            itemJson.put("item_id", item.getItem().getId());
+            itemJson.put("item", item.getItem().getId());
             itemJson.put("name", item.getItem().getName());
             itemJson.put("price", item.getItem().getPrice());
             itemJson.put("type", item.getItem().getType());
@@ -283,10 +283,10 @@ public class SubscriptionHandler implements HttpHandler {
         }
 
         // Mengambil data dari JSON
-        int customerId = json.getInt("customer_id");
-        String billingPeriod = json.getString("billing_period");
+        int customerId = json.getInt("customers");
+        int billingPeriod = json.getInt("billing_period");
         String billingPeriodUnit = json.getString("billing_period_unit");
-        double totalDue = json.getDouble("total_due");
+        int totalDue = json.getInt("total_due");
         String activatedAtStr = json.getString("activated_at");
         String currentTermStartStr = json.getString("current_term_start");
         String currentTermEndStr = json.getString("current_term_end");
@@ -311,16 +311,16 @@ public class SubscriptionHandler implements HttpHandler {
                 }
             }
 
-            String sql = "INSERT INTO subscriptions (customer_id, billing_period, billing_period_unit, total_due, activated_at, current_term_start, current_term_end, status) " +
+            String sql = "INSERT INTO subscriptions (customers, billing_period, billing_period_unit, total_due, activated_at, current_term_start, current_term_end, status) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setInt(1, customerId);
-                stmt.setString(2, billingPeriod);
+                stmt.setInt(2, billingPeriod);
                 stmt.setString(3, billingPeriodUnit);
-                stmt.setDouble(4, totalDue);
-                stmt.setTimestamp(5, activatedAt);
-                stmt.setTimestamp(6, currentTermStart);
-                stmt.setTimestamp(7, currentTermEnd);
+                stmt.setInt(4, (int) totalDue);
+                stmt.setString(5, String.valueOf(activatedAt));
+                stmt.setString(6, String.valueOf(currentTermStart));
+                stmt.setString(7, String.valueOf(currentTermEnd));
                 stmt.setString(8, status);
                 stmt.executeUpdate();
 
@@ -330,10 +330,8 @@ public class SubscriptionHandler implements HttpHandler {
                     if (generatedKeys.next()) {
                         subscriptionId = generatedKeys.getInt(1);
 
-                        // Menyisipkan data ke tabel subscription_items
                         insertSubscriptionItems(conn, subscriptionId, itemsArray);
 
-                        // Membuat respons JSON
                         JSONObject responseJson = new JSONObject();
                         responseJson.put("message", "Subscription created with id " + subscriptionId);
                         sendResponse(exchange, 201, responseJson.toString());
@@ -348,15 +346,14 @@ public class SubscriptionHandler implements HttpHandler {
         }
     }
 
-    // Menyisipkan item langganan ke tabel subscription_items
     private void insertSubscriptionItems(Connection conn, int subscriptionId, JSONArray itemsArray) throws SQLException {
-        String sql = "INSERT INTO subscription_items (subscription_id, item_id, quantity, amount, price) " +
+        String sql = "INSERT INTO subscription_items (subscription, item, quantity, amount, price) " +
                 "VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             for (int i = 0; i < itemsArray.length(); i++) {
                 JSONObject item = itemsArray.getJSONObject(i);
                 stmt.setInt(1, subscriptionId);
-                stmt.setInt(2, item.getInt("item_id"));
+                stmt.setInt(2, item.getInt("item"));
                 stmt.setInt(3, item.getInt("quantity"));
                 stmt.setDouble(4, item.getDouble("amount"));
                 stmt.setDouble(5, item.getDouble("price"));
@@ -367,7 +364,6 @@ public class SubscriptionHandler implements HttpHandler {
         }
     }
 
-    // Metode untuk mengirimkan respons ke klien
     private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
         exchange.sendResponseHeaders(statusCode, response.getBytes().length);
@@ -376,4 +372,3 @@ public class SubscriptionHandler implements HttpHandler {
         }
     }
 }
-
