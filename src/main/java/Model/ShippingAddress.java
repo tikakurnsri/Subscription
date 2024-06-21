@@ -2,7 +2,7 @@ package Model;
 
 public class ShippingAddress {
     private int id;
-    private int customerId;
+    private int customers;
     private String title;
     private String line1;
     private String line2;
@@ -14,7 +14,7 @@ public class ShippingAddress {
 
     public ShippingAddress(int id, int customerId, String title, String line1, String line2, String province, String postcode) {
         this.id = id;
-        this.customerId = customerId;
+        this.customers = customerId;
         this.title = title;
         this.line1 = line1;
         this.line2 = line2;
@@ -26,8 +26,8 @@ public class ShippingAddress {
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public int getCustomerId() { return customerId; }
-    public void setCustomerId(int customerId) { this.customerId = customerId; }
+    public int getCustomerId() { return customers; }
+    public void setCustomerId(int customerId) { this.customers = customerId; }
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
@@ -47,8 +47,7 @@ public class ShippingAddress {
     // Override toString() method to represent the object as a JSON-like string
     @Override
     public String toString() {
-        return String.format("{\"id\":%d,\"customerId\":%d,\"title\":\"%s\",\"line1\":\"%s\",\"line2\":\"%s\",\"province\":\"%s\",\"postcode\":\"%s\"}",
-                id, customerId, title, line1, line2, province, postcode);
+        return String.format("{\"id\":%d,\"customers\":%d,\"title\":\"%s\",\"line1\":\"%s\",\"line2\":\"%s\",\"province\":\"%s\",\"postcode\":\"%s\"}",
+                id, customers, title, line1, line2, province, postcode);
     }
 }
-
