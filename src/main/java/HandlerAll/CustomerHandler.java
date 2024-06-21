@@ -110,7 +110,7 @@ public class CustomerHandler implements HttpHandler {
                     customer.setEmail(rs.getString("email"));
                     customer.setFirstName(rs.getString("first_name"));
                     customer.setLastName(rs.getString("last_name"));
-                    customer.setPhoneNumber(rs.getString("phone_number"));
+                    customer.setPhoneNumber(rs.getInt("phone_number"));
                     customers.add(customer);
                 }
             }
@@ -137,7 +137,7 @@ public class CustomerHandler implements HttpHandler {
                         customer.setEmail(rs.getString("email"));
                         customer.setFirstName(rs.getString("first_name"));
                         customer.setLastName(rs.getString("last_name"));
-                        customer.setPhoneNumber(rs.getString("phone_number"));
+                        customer.setPhoneNumber(rs.getInt("phone_number"));
 
                         sendResponse(exchange, HttpURLConnection.HTTP_OK, customer.toJSON().toString());
                     } else {
@@ -153,10 +153,10 @@ public class CustomerHandler implements HttpHandler {
 
     private void getCustomerCards(HttpExchange exchange) throws IOException {
         String[] parts = exchange.getRequestURI().getPath().split("/");
-        int customerId = Integer.parseInt(parts[2]);
+        int customer = Integer.parseInt(parts[2]);
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            List<String> cards = getCustomerCardsFromDatabase(customerId, conn);
+            List<String> cards = getCustomerCardsFromDatabase(customer, conn);
 
             sendResponse(exchange, HttpURLConnection.HTTP_OK, new JSONArray(cards).toString());
         } catch (Exception e) {
@@ -165,11 +165,11 @@ public class CustomerHandler implements HttpHandler {
         }
     }
 
-    private List<String> getCustomerCardsFromDatabase(int customerId, Connection conn) throws SQLException {
+    private List<String> getCustomerCardsFromDatabase(int customer, Connection conn) throws SQLException {
         List<String> cards = new ArrayList<>();
-        String sql = "SELECT masked_number FROM cards WHERE customer_id = ?";
+        String sql = "SELECT masked_number FROM cards WHERE customer = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, customerId);
+            stmt.setInt(1, customer);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     cards.add(rs.getString("masked_number"));
@@ -182,10 +182,10 @@ public class CustomerHandler implements HttpHandler {
     private void getCustomerSubscriptions(HttpExchange exchange) throws IOException {
         // Mendapatkan ID pelanggan dari URL
         String[] parts = exchange.getRequestURI().getPath().split("/");
-        int customerId = Integer.parseInt(parts[2]);
+        int customer = Integer.parseInt(parts[2]);
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            List<Subscription> subscriptions = getAllCustomerSubscriptionsFromDatabase(customerId, conn);
+            List<Subscription> subscriptions = getAllCustomerSubscriptionsFromDatabase(customer, conn);
 
             ObjectMapper mapper = new ObjectMapper();
             String jsonResponse = mapper.writeValueAsString(subscriptions);
@@ -197,22 +197,22 @@ public class CustomerHandler implements HttpHandler {
         }
     }
 
-    private List<Subscription> getAllCustomerSubscriptionsFromDatabase(int customerId, Connection conn) throws SQLException {
+    private List<Subscription> getAllCustomerSubscriptionsFromDatabase(int customer, Connection conn) throws SQLException {
         List<Subscription> subscriptions = new ArrayList<>();
-        String sql = "SELECT * FROM subscriptions WHERE customer_id = ?";
+        String sql = "SELECT * FROM subscriptions WHERE customers = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, customerId);
+            stmt.setInt(1, customer);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     Subscription subscription = new Subscription();
                     subscription.setId(rs.getInt("id"));
-                    subscription.setCustomerId(rs.getInt("customer_id"));
-                    subscription.setBillingPeriod(rs.getString("billing_period"));
+                    subscription.setCustomerId(rs.getInt("customers"));
+                    subscription.setBillingPeriod(rs.getInt("billing_period"));
                     subscription.setBillingPeriodUnit(rs.getString("billing_period_unit"));
-                    subscription.setTotalDue(rs.getDouble("total_due"));
-                    subscription.setActivatedAt(rs.getTimestamp("activated_at"));
-                    subscription.setCurrentTermStart(rs.getTimestamp("current_term_start"));
-                    subscription.setCurrentTermEnd(rs.getTimestamp("current_term_end"));
+                    subscription.setTotalDue(rs.getInt("total_due"));
+                    subscription.setActivatedAt(rs.getString("activated_at"));
+                    subscription.setCurrentTermStart(rs.getString("current_term_start"));
+                    subscription.setCurrentTermEnd(rs.getString("current_term_end"));
                     subscription.setStatus(rs.getString("status"));
 
                     subscriptions.add(subscription);
@@ -225,11 +225,11 @@ public class CustomerHandler implements HttpHandler {
     private void getCustomerSubscriptionsByStatus(HttpExchange exchange) throws IOException {
         // Mendapatkan ID pelanggan dan status subscriptions dari URL
         String[] parts = exchange.getRequestURI().getPath().split("/");
-        int customerId = Integer.parseInt(parts[2]);
+        int customer = Integer.parseInt(parts[2]);
         String subscriptionsStatus = exchange.getRequestURI().getQuery().split("=")[1];
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            List<String> subscriptions = getCustomerSubscriptionsByStatus(customerId, subscriptionsStatus, conn);
+            List<String> subscriptions = getCustomerSubscriptionsByStatus(customer, subscriptionsStatus, conn);
 
             sendResponse(exchange, HttpURLConnection.HTTP_OK, new JSONArray(subscriptions).toString());
         } catch (Exception e) {
@@ -259,11 +259,11 @@ public class CustomerHandler implements HttpHandler {
             }
 
             // Simpan data pelanggan ke database
-            int customerId = saveCustomer(email, firstName, lastName, phoneNumber);
+            int customer = saveCustomer(email, firstName, lastName, phoneNumber);
 
             // Jika berhasil disimpan, kirim respons HTTP 201 (Created) dengan ID pelanggan baru
             JSONObject responseJson = new JSONObject();
-            responseJson.put("id", customerId);
+            responseJson.put("id", customer);
             sendResponse(exchange, HttpURLConnection.HTTP_CREATED, responseJson.toString());
         } catch (Exception e) {
             e.printStackTrace();
