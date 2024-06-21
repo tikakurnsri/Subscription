@@ -34,7 +34,6 @@ public class Item {
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
 
-    // Override toString() method to represent the object as a JSON-like string
     @Override
     public String toString() {
         return String.format("{\"id\":%d,\"name\":\"%s\",\"price\":%f,\"type\":\"%s\",\"isActive\":%b}",
