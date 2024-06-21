@@ -1,35 +1,34 @@
 package Model;
 
 import org.json.JSONObject;
-import java.sql.Timestamp;
 import java.util.List;
 
 public class Subscription {
     private int id;
-    private int customerId;
-    private String billingPeriod;
-    private String billingPeriodUnit;
-    private double totalDue;
-    private Timestamp activatedAt;
-    private Timestamp currentTermStart;
-    private Timestamp currentTermEnd;
+    private int customers;
+    private int billing_period;
+    private String billing_period_unit;
+    private int total_due;
+    private String activated_at;
+    private String current_term_start;
+    private String current_term_end;
     private String status;
     private List<SubscriptionItem> items; // List of SubscriptionItem
 
     // Constructors
     public Subscription() {}
 
-    public Subscription(int id, int customerId, String billingPeriod, String billingPeriodUnit, double totalDue,
-                        Timestamp activatedAt, Timestamp currentTermStart, Timestamp currentTermEnd, String status,
+    public Subscription(int id, int customerId, int billingPeriod, String billingPeriodUnit, int totalDue,
+                        String activatedAt, String currentTermStart, String currentTermEnd, String status,
                         List<SubscriptionItem> items) {
         this.id = id;
-        this.customerId = customerId;
-        this.billingPeriod = billingPeriod;
-        this.billingPeriodUnit = billingPeriodUnit;
-        this.totalDue = totalDue;
-        this.activatedAt = activatedAt;
-        this.currentTermStart = currentTermStart;
-        this.currentTermEnd = currentTermEnd;
+        this.customers = customerId;
+        this.billing_period = billingPeriod;
+        this.billing_period_unit = billingPeriodUnit;
+        this.total_due = totalDue;
+        this.activated_at = activatedAt;
+        this.current_term_start = currentTermStart;
+        this.current_term_end = currentTermEnd;
         this.status = status;
         this.items = items;
     }
@@ -38,26 +37,26 @@ public class Subscription {
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public int getCustomerId() { return customerId; }
-    public void setCustomerId(int customerId) { this.customerId = customerId; }
+    public int getCustomerId() { return customers; }
+    public void setCustomerId(int customerId) { this.customers = customerId; }
 
-    public String getBillingPeriod() { return billingPeriod; }
-    public void setBillingPeriod(String billingPeriod) { this.billingPeriod = billingPeriod; }
+    public int getBillingPeriod() { return billing_period; }
+    public void setBillingPeriod(int billingPeriod) { this.billing_period = billingPeriod; }
 
-    public String getBillingPeriodUnit() { return billingPeriodUnit; }
-    public void setBillingPeriodUnit(String billingPeriodUnit) { this.billingPeriodUnit = billingPeriodUnit; }
+    public String getBillingPeriodUnit() { return billing_period_unit; }
+    public void setBillingPeriodUnit(String billingPeriodUnit) { this.billing_period_unit = billingPeriodUnit; }
 
-    public double getTotalDue() { return totalDue; }
-    public void setTotalDue(double totalDue) { this.totalDue = totalDue; }
+    public int getTotalDue() { return total_due; }
+    public void setTotalDue(int totalDue) { this.total_due = totalDue; }
 
-    public Timestamp getActivatedAt() { return activatedAt; }
-    public void setActivatedAt(Timestamp activatedAt) { this.activatedAt = activatedAt; }
+    public String getActivatedAt() { return activated_at; }
+    public void setActivatedAt(String activatedAt) { this.activated_at = activatedAt; }
 
-    public Timestamp getCurrentTermStart() { return currentTermStart; }
-    public void setCurrentTermStart(Timestamp currentTermStart) { this.currentTermStart = currentTermStart; }
+    public String getCurrentTermStart() { return current_term_start; }
+    public void setCurrentTermStart(String currentTermStart) { this.current_term_start = currentTermStart; }
 
-    public Timestamp getCurrentTermEnd() { return currentTermEnd; }
-    public void setCurrentTermEnd(Timestamp currentTermEnd) { this.currentTermEnd = currentTermEnd; }
+    public String getCurrentTermEnd() { return current_term_end; }
+    public void setCurrentTermEnd(String currentTermEnd) { this.current_term_end = currentTermEnd; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
@@ -70,15 +69,15 @@ public class Subscription {
     public String toString() {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("id", id);
-        jsonObject.put("customerId", customerId);
-        jsonObject.put("billingPeriod", billingPeriod);
-        jsonObject.put("billingPeriodUnit", billingPeriodUnit);
-        jsonObject.put("totalDue", totalDue);
-        jsonObject.put("activatedAt", activatedAt != null ? activatedAt.toString() : null);
-        jsonObject.put("currentTermStart", currentTermStart != null ? currentTermStart.toString() : null);
-        jsonObject.put("currentTermEnd", currentTermEnd != null ? currentTermEnd.toString() : null);
+        jsonObject.put("customerId", customers);
+        jsonObject.put("billingPeriod", billing_period);
+        jsonObject.put("billingPeriodUnit", billing_period_unit);
+        jsonObject.put("totalDue", total_due);
+        jsonObject.put("activatedAt", activated_at != null ? activated_at.toString() : null);
+        jsonObject.put("currentTermStart", current_term_start != null ? current_term_start.toString() : null);
+        jsonObject.put("currentTermEnd", current_term_end != null ? current_term_end.toString() : null);
         jsonObject.put("status", status);
-        jsonObject.put("items", items); // This will use the toString() method of SubscriptionItem if overridden
+        jsonObject.put("items", items);
         return jsonObject.toString();
     }
 }
