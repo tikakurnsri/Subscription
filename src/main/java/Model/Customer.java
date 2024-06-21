@@ -10,14 +10,14 @@ public class Customer {
     private String email;
     private String first_name;
     private String last_name;
-    private String phone_number;
+    private Integer phone_number;
     private List<String> shipping_addresses;
 
     // Constructors, getters, and setters
     public Customer() {
     }
 
-    public Customer(int id, String email, String firstName, String lastName, String phoneNumber) {
+    public Customer(int id, String email, String firstName, String lastName, Integer phoneNumber) {
         this.id = id;
         this.email = email;
         this.first_name = firstName;
@@ -57,13 +57,11 @@ public class Customer {
         this.last_name = lastName;
     }
 
-    public String getPhoneNumber() {
+    public int getPhoneNumber() {
         return phone_number;
     }
 
-    public void setPhoneNumber(String phoneNumber) {
-        this.phone_number = phoneNumber;
-    }
+    public void setPhoneNumber(Integer phoneNumber) {this.phone_number = phoneNumber;}
 
     public List<String> getAddresses() {
         return shipping_addresses;
